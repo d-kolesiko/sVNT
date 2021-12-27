@@ -1,24 +1,44 @@
 
 ###library
-install.packages('heplots')
-install.packages("PerformanceAnalytics")
 library("PerformanceAnalytics")
-library(corrplot)
 library(ggplot2)
+library("GGally")
+library(corrplot)
+library(heplots) 
+library(Hmisc)
+library(devtools)
 
 ###check data
-Gam_53 <- read.csv('Table_Gam_53.csv')
-str(Gam_53)
-apply(Gam_53, 2, shapiro.test)
+Fig <- read.csv('Fig3.csv')
+str(Fig)
+apply(Fig, 2, shapiro.test)
 
-###Correlation
-pairs(Gam_53)
-chart.Correlation(Gam_53, histogram=TRUE, pch=19)
-chart.Correlation(Gam_53, histogram=TRUE, pch=19, method = 'spearman')
+###Correlation 1 
+pairs(Fig)
+chart.Correlation(Fig, histogram=TRUE, pch=19)
+chart.Correlation(Fig, histogram=TRUE, pch=19, method = 'spearman')
+
+###Correlation 2 
+Fig_3c <- Fig[,c(2,3,6,7)]
+lowerFn <- function(data, mapping, method = "lm", ...) {
+  p <- ggplot(data = data, mapping = mapping) +
+    geom_point(colour = "blue") +
+    geom_smooth(method = method, color = "red", ...)
+  p
+}
+
+colnames(Fig_3c) <- make.names(c('VNT', 'sVNT', 'ELISA-RBD', 'ELISA-NP'))
+gg1 <- ggpairs(
+  Fig_3c, labeller = label_wrap_gen(5), columnLabels = gsub('.', ' ', colnames(Fig_3c), fixed = T), lower = list(continuous = wrap(lowerFn, method = 'lm')),
+  diag = list(continuous = wrap("barDiag", colour = "blue", size = 1)),
+  upper = list(continuous = wrap("cor", method = "spearman", size = 8, color = 'black'))
+)
+gg1 + theme(text = element_text(size = 15, lineheight = 1))
+
 
 ###ANOVA
 library(heplots) 
-model.aov <- aov(data = Gam_53, formula = VNT ~ sVNT_Inh50 + sVNT_dilution20 + sVNT_dilution40 + ELISA_RBD + ELISA_NP)
+model.aov <- aov(data = Fig, formula = VNT ~ sVNT_Inh50 + sVNT_dilution20 + sVNT_dilution40 + ELISA_RBD + ELISA_NP)
 summary(model.aov)
 
 ###Plots
